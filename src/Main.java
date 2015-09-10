@@ -1,10 +1,15 @@
 public class Main {
 
     public static void main(String[] args) {
-        byte a = 0x57;
-        byte b = 0x13;
-        FiniteFieldArithmetic ffa = new FiniteFieldArithmetic();
-        byte answer = ffa.ffmultiply(a, b);
-        System.out.println(Integer.toBinaryString((byte) answer));
+
+//        byte a = 0x27;
+//        byte b = 0x70;//should be c9
+//        byte answer = FiniteFieldArithmetic.ffMultiply(a, b);
+//
+//        System.out.println(Integer.toBinaryString(answer));
+
+        Key key = new Key("128");
+        key.getRoundKeys();
+
     }
 }
