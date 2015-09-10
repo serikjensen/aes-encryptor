@@ -8,8 +8,9 @@ public class Main {
 //
 //        System.out.println(Integer.toBinaryString(answer));
 
-        Key key = new Key("128");
-        key.getRoundKeys();
+        int keySize = 128;
+        AesExecutor aesExecutor = new AesExecutor(keySize);
+        aesExecutor.run();
 
     }
 }
