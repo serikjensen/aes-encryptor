@@ -8,6 +8,11 @@ public class Key {
     private String keySize;
     private byte[][] cipherKey;
     private byte[][] roundKeys;
+
+    private int nk;
+    private int nr;
+    private int roundKeysSize;
+
     private int rconIndex = 1;
 
     private byte[][] cipherKey128 = {
@@ -76,51 +81,49 @@ public class Key {
     public Key(String keySize) {
         this.keySize = keySize;
 
-        if (keySize == "128")
+        if (keySize == "128") {
             cipherKey = cipherKey128;
+            nk = 4;
+            nr = 10;
+            roundKeysSize = (nk * nr) + nk;
+        }
 
-        else if (keySize == "192")
+        else if (keySize == "192") {
             cipherKey = cipherKey192;
+            nk = 6;
+            nr = 12;
+            roundKeysSize = (4 * nr) + 4;
+        }
 
-        else if (keySize == "256")
+        else if (keySize == "256") {
             cipherKey = cipherKey256;
+            nk = 8;
+            nr = 14;
+            roundKeysSize = (4 * nr) + 4;
+        }
     }
 
     public byte[][] getRoundKeys() {
 
-        if (this.keySize == "128")
-            return getRoundKeys128();
+        roundKeys = new byte[roundKeysSize][4];
 
-        else if (this.keySize == "192")
-            return getRoundKeys192();
-
-        else
-            return getRoundKeys256();
-
-    }
-
-    private byte[][] getRoundKeys128() {
-
-        roundKeys = new byte[44][4];
-
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < nk; i++)
             roundKeys[i] = cipherKey[i];
 
-        for (int i = 4; i < roundKeys.length; i++) {
-            if (i % 4 == 0) {
+        for (int i = nk; i < roundKeys.length; i++) {
 
-                byte[] prev = new byte[4];
-                for (int j = 0; j < 4; j++) {
-                    prev[j] = roundKeys[i-1][j];
-                }
+            if (i % nk == 0) {
 
-                byte[] rotatedWord = this.rotWord(prev);
-                byte[] subbedBytes = this.subBytes(rotatedWord);
                 byte[] result = new byte[4];
+                for (int j = 0; j < 4; j++)
+                    result[j] = roundKeys[i-1][j];
+
+                byte[] rotatedWord = this.rotWord(result);
+                byte[] subbedBytes = this.subBytes(rotatedWord);
 
                 for (int j = 0; j < 4; j++) {
 
-                    result[j] = FiniteFieldArithmetic.ffAdd(roundKeys[i - 4][j], subbedBytes[j]);
+                    result[j] = FiniteFieldArithmetic.ffAdd(roundKeys[i - nk][j], subbedBytes[j]);
 
                     if (j == 0) {
                         result[j] = FiniteFieldArithmetic.ffAdd(result[j], rcon[rconIndex]);
@@ -130,34 +133,28 @@ public class Key {
                 roundKeys[i] = result;
             }
             else {
+
                 byte[] result = new byte[4];
                 for (int j = 0; j < 4; j++)
-                    result[j] = FiniteFieldArithmetic.ffAdd(roundKeys[i-4][j], roundKeys[i-1][j]);
+                    result[j] = roundKeys[i-1][j];
 
-//                System.out.println(this.printWord(result));
+                if (keySize.equals("256") && i % 4 == 0) {
+                  result = this.subBytes(result);
+                }
+
+                for (int j = 0; j < 4; j++)
+                    result[j] = FiniteFieldArithmetic.ffAdd(roundKeys[i-nk][j], result[j]);
+
                 roundKeys[i] = result;
             }
-
-            System.out.println("Current Round Key on " + i + ":");
-            for (int j = 0; j < roundKeys.length; j++) {
-                System.out.println(this.printWord(roundKeys[j]));
-            }
-            System.out.println("\n");
         }
 
-
+        for (int j = 0; j < roundKeys.length; j++) {
+            System.out.println(this.printWord(roundKeys[j]));
+        }
+        System.out.println("\n");
 
         return roundKeys;
-    }
-
-    private byte[][] getRoundKeys192() {
-
-        return null;
-    }
-
-    private byte[][] getRoundKeys256() {
-
-        return null;
     }
 
     private byte[] rotWord(byte[] w) {
@@ -177,6 +174,7 @@ public class Key {
             int[] nibbles = getNibbles(w[i]);
             w[i] = sbox[nibbles[0]][nibbles[1]];
         }
+
         return w;
     }
 
@@ -202,14 +200,19 @@ public class Key {
         String bits = Integer.toBinaryString(b);
 
         if (bits.length() > 4) {
+
             String firstNibbleStr = bits.substring(0, bits.length()-4);
+
             if (firstNibbleStr.length() > 4)
                 firstNibbleStr = firstNibbleStr.substring(firstNibbleStr.length()-4, firstNibbleStr.length());
 
             result[0] = Integer.parseInt(firstNibbleStr, 2);
-        }
-        if (bits.length() >= 4) {
+
             String secondNibbleStr = bits.substring(bits.length() - 4, bits.length());
+            result[1] = Integer.parseInt(secondNibbleStr, 2);
+        }
+        else {
+            String secondNibbleStr = bits.substring(0, bits.length());
             result[1] = Integer.parseInt(secondNibbleStr, 2);
         }
         return result;
