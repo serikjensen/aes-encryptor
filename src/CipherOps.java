@@ -218,23 +218,28 @@ public class CipherOps {
         StringBuilder s = new StringBuilder();
 
         for (int j = 0; j < 4; j++) {
-            for (int i = 0; i < state.length; i++) {
-                StringBuilder value = new StringBuilder(Integer.toHexString(state[i][j]));
-                if (value.length() < 2) {
-                    value.insert(0, '0');
-                    s.append(value.toString() + " ");
-                }
-                else if (value.length() > 2) {
-                    value = new StringBuilder(value.substring(value.length()-2, value.length()));
-                    s.append(value.toString() + " ");
-                }
-                else {
-                    s.append(value.toString() + " ");
-                }
-            }
+
+            for (int i = 0; i < state.length; i++)
+                s.append(stringifyByte(state[i][j]) + " ");
+
             s.append("\n");
         }
 
         return s.toString();
+    }
+
+    public static String stringifyByte(byte b) {
+        StringBuilder value = new StringBuilder(Integer.toHexString(b));
+        if (value.length() < 2) {
+            value.insert(0, '0');
+            return value.toString();
+        }
+        else if (value.length() > 2) {
+            value = new StringBuilder(value.substring(value.length()-2, value.length()));
+            return value.toString();
+        }
+        else {
+            return value.toString();
+        }
     }
 }

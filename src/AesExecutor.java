@@ -1,3 +1,5 @@
+import javax.crypto.Cipher;
+
 /**
  * Created by steve on 9/10/15.
  */
@@ -6,6 +8,7 @@ public class AesExecutor {
     private Key key;
     private int keyIndex = 0;
     private int nr;
+
 
     private byte[][] state = {
             {        0x32,        0x43, (byte) 0xF6, (byte) 0xA8 },
@@ -18,6 +21,23 @@ public class AesExecutor {
         key = new Key(keySize);
         key.performKeyExpansion();
 
+        this.setRoundCount(keySize);
+
+    }
+
+
+    public AesExecutor(int keySize, byte[][] customState, byte[][] customCipherKey) {
+        key = new Key(keySize);
+        key.setCustomCipherKey(customCipherKey);
+        key.performKeyExpansion();
+
+        this.state = customState;
+
+        this.setRoundCount(keySize);
+
+    }
+
+    private void setRoundCount(int keySize) {
         if (keySize == 128)
             nr = 10;
 
@@ -26,8 +46,8 @@ public class AesExecutor {
 
         else if (keySize == 256)
             nr = 14;
-
     }
+
 
     public void applyCipher() {
 
@@ -40,24 +60,35 @@ public class AesExecutor {
         // Perform following steps up to nr (num rounds)
         for (int i = 1; i < nr; i++) {
 
-            // Sub bytes
+            // ------------- Sub bytes -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.subBytes(state[j]);
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Shift rows
+
+            // ------------- Shift rows -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             state = CipherOps.shiftRows(state);
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Mix columns
+
+            // ------------- Mix columns -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.mixColumns(state[j]);
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Add round key
+
+            // ------------- Add round key -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.addRoundKey(state[j], key.getRoundKeyVal(keyIndex));
                 keyIndex++;
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
         }
 
         // Sub bytes one last time
@@ -74,7 +105,6 @@ public class AesExecutor {
             keyIndex++;
         }
 
-        System.out.println(CipherOps.stringifyWordArray(state));
     }
 
     public void applyInverseCipher() {
@@ -87,24 +117,35 @@ public class AesExecutor {
 
         for (int i = 1; i < nr; i++) {
 
-            // Inverse shift rows
+            // ---------- Inverse shift rows -----------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             state = CipherOps.inverseShiftRows(state);
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Inverse sub bytes
+
+            // ---------- Inverse sub bytes -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.inverseSubBytes(state[j]);
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Add round key
+
+            // ------------ Add round key -------------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             keyIndex -= 4;
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.addRoundKey(state[j], key.getRoundKeyVal(keyIndex + j));
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
-            // Inverse mix columns
+
+            // ------------ Inverse mix columns ---------
+            //System.out.println(CipherOps.stringifyWordArray(state));
             for (int j = 0; j < state.length; j++) {
                 state[j] = CipherOps.inverseMixColumns(state[j]);
             }
+            //System.out.println(CipherOps.stringifyWordArray(state));
 
         }
 
@@ -121,10 +162,15 @@ public class AesExecutor {
         for (int i = 0; i < state.length; i++) {
             state[i] = CipherOps.addRoundKey(state[i], key.getRoundKeyVal(keyIndex + i));
         }
-
-        System.out.println(CipherOps.stringifyWordArray(state));
     }
 
+    public String stringifyState() {
+        return CipherOps.stringifyWordArray(state);
+    }
+
+    public String stringifyKey() {
+        return key.toString();
+    }
 
 
 }

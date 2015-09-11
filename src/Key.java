@@ -83,6 +83,12 @@ public class Key {
         }
     }
 
+
+    public void setCustomCipherKey(byte[][] customKey) {
+        cipherKey = customKey;
+    }
+
+
     public void performKeyExpansion() {
 
         roundKeys = new byte[roundKeysSize][4];
@@ -92,6 +98,7 @@ public class Key {
 
         for (int i = nk; i < roundKeys.length; i++) {
 
+            //System.out.println(this.toString());
             if (i % nk == 0) {
 
                 byte[] result = new byte[4];
