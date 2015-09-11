@@ -134,6 +134,10 @@ public class Key {
         return roundKeys[index];
     }
 
+    public int getKeyLength() {
+        return roundKeysSize;
+    }
+
     @Override
     public String toString() {
         return CipherOps.stringifyWordArray(roundKeys);

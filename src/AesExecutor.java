@@ -29,7 +29,7 @@ public class AesExecutor {
 
     }
 
-    public void run() {
+    public void applyCipher() {
 
         // Add initial round key
         for (int i = 0; i < state.length; i++) {
@@ -60,13 +60,15 @@ public class AesExecutor {
             }
         }
 
-        // Sub bytes
+        // Sub bytes one last time
         for (int i = 0; i < state.length; i++) {
             state[i] = CipherOps.subBytes(state[i]);
         }
 
+        // Shift rows one last time
         state = CipherOps.shiftRows(state);
 
+        // Add round key one last time
         for (int i = 0; i < state.length; i++) {
             state[i] = CipherOps.addRoundKey(state[i], key.getRoundKeyVal(keyIndex));
             keyIndex++;
@@ -75,7 +77,53 @@ public class AesExecutor {
         System.out.println(CipherOps.stringifyWordArray(state));
     }
 
+    public void applyInverseCipher() {
 
+        // Add round key
+        keyIndex -= 4;
+        for (int i = 0; i < state.length; i++) {
+            state[i] = CipherOps.addRoundKey(state[i], key.getRoundKeyVal(keyIndex + i));
+        }
+
+        for (int i = 1; i < nr; i++) {
+
+            // Inverse shift rows
+            state = CipherOps.inverseShiftRows(state);
+
+            // Inverse sub bytes
+            for (int j = 0; j < state.length; j++) {
+                state[j] = CipherOps.inverseSubBytes(state[j]);
+            }
+
+            // Add round key
+            keyIndex -= 4;
+            for (int j = 0; j < state.length; j++) {
+                state[j] = CipherOps.addRoundKey(state[j], key.getRoundKeyVal(keyIndex + j));
+            }
+
+            // Inverse mix columns
+            for (int j = 0; j < state.length; j++) {
+                state[j] = CipherOps.inverseMixColumns(state[j]);
+            }
+
+        }
+
+        // Inverse shift rows one last time
+        state = CipherOps.inverseShiftRows(state);
+
+        // Inverse sub bytes one last time
+        for (int i = 0; i < state.length; i++) {
+            state[i] = CipherOps.inverseSubBytes(state[i]);
+        }
+
+        // Add round key one last time
+        keyIndex -= 4;
+        for (int i = 0; i < state.length; i++) {
+            state[i] = CipherOps.addRoundKey(state[i], key.getRoundKeyVal(keyIndex + i));
+        }
+
+        System.out.println(CipherOps.stringifyWordArray(state));
+    }
 
 
 

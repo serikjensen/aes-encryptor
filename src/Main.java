@@ -10,7 +10,8 @@ public class Main {
 
         int keySize = 128;
         AesExecutor aesExecutor = new AesExecutor(keySize);
-        aesExecutor.run();
+        aesExecutor.applyCipher();
+        aesExecutor.applyInverseCipher();
 
     }
 }
